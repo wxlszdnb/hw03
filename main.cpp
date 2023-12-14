@@ -3,6 +3,7 @@
 #include <variant>
 
 // 请修复这个函数的定义：10 分
+template <typename T>
 std::ostream &operator<<(std::ostream &os, std::vector<T> const &a) {
     os << "{";
     for (size_t i = 0; i < a.size(); i++) {
@@ -16,19 +17,42 @@ std::ostream &operator<<(std::ostream &os, std::vector<T> const &a) {
 
 // 请修复这个函数的定义：10 分
 template <class T1, class T2>
-std::vector<T0> operator+(std::vector<T1> const &a, std::vector<T2> const &b) {
+auto operator+(std::vector<T1> const &a, std::vector<T2> const &b) {
     // 请实现列表的逐元素加法！10 分
     // 例如 {1, 2} + {3, 4} = {4, 6}
+    using T0= decltype(T1{}+T2{});
+    using size_type= typename std::vector<T0>::size_type;
+    auto len=std::min(a.size(),b.size());
+    std::vector<T0> res(len);
+
+    for (size_type i=0;i<len;++i) {
+        res[i]=a[i]+b[i];
+    }
+    return res;
 }
 
 template <class T1, class T2>
 std::variant<T1, T2> operator+(std::variant<T1, T2> const &a, std::variant<T1, T2> const &b) {
     // 请实现自动匹配容器中具体类型的加法！10 分
+    return std::visit([&](auto const & t1,auto const& t2)->std::variant<T1, T2>{
+        return {t1+t2};
+    },a,b);
+}
+
+template <class T1, class T2, typename T3,
+        std::enable_if_t<std::is_same_v<T3, T1> || std::is_same_v<T3, T2>, int> = 0>//只要T3与T1、T2中的一个类型一样即可！
+std::variant<T1, T2> operator+(std::variant<T1, T2> const &a, T3 const &b) {
+    // 请实现自动匹配容器中具体类型的加法！10 分
+    return a + std::variant<T1, T2>{b};
 }
 
 template <class T1, class T2>
 std::ostream &operator<<(std::ostream &os, std::variant<T1, T2> const &a) {
     // 请实现自动匹配容器中具体类型的打印！10 分
+    std::visit([&](auto const &v)->void {
+         os<<v;
+         },a);
+    return os;
 }
 
 int main() {
